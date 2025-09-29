@@ -806,9 +806,9 @@ class UIRenderer:
                 'ramUsage': "N/A"
             }
 
-    @staticmethod
-    def render_title() -> str:
-           return """
+@staticmethod
+def render_title() -> str:
+    return """
 ╔═══════════════════════════════════════════════════════╗
 ║    🛒 𝗦𝗧𝗢𝗥𝗘𝟭𝗦.𝗖𝗢𝗠 • Premium E-Commerce Platform    ║
 ║         Your Trusted Shopping Destination            ║
