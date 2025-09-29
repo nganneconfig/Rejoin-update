@@ -211,7 +211,7 @@ class WebhookManager:
             
             embed = {
                 "color": random_color,
-                "title": "📈 Multi Dawn Rejoin - System Status",
+                "title": "📈 Multi Rejoin Ngan - System Status",
                 "description": f"Real-time report for **{self.device_name}**",
                 "fields": [
                     {
@@ -246,21 +246,21 @@ class WebhookManager:
                     }
                 ],
                 "footer": {
-                    "text": "Multi Dawn Rejoin Tool | Made with ❤️",
-                    "icon_url": "https://i.imgur.com/5yXNxU4.png"
+                    "text": "Ngan Rejoin Tool | Made with ❤️",
+                    "icon_url": "https://cdn.discordapp.com/attachments/1269331861902196902/1422144505485721653/1.png?ex=68db9ac8&is=68da4948&hm=a7ed4d0a5740ff876e12b22f94f3e14df81d5396fb504b52251f1382e65d1211&"
                 },
                 "timestamp": datetime.utcnow().isoformat() + "Z",
                 "author": {
-                    "name": "Multi Dawn Rejoin",
-                    "icon_url": "https://i.imgur.com/5yXNxU4.png"
+                    "name": "Rejoin By Ngan",
+                    "icon_url": "https://cdn.discordapp.com/attachments/1269331861902196902/1422144505485721653/1.png?ex=68db9ac8&is=68da4948&hm=a7ed4d0a5740ff876e12b22f94f3e14df81d5396fb504b52251f1382e65d1211&"
                 }
             }
 
             # Prepare payload
             payload = {
                 "embeds": [embed],
-                "username": "Multi Dawn Rejoin",
-                "avatar_url": "https://i.imgur.com/5yXNxU4.png"
+                "username": "Rejoin By Ngan🔥",
+                "avatar_url": "https://cdn.discordapp.com/attachments/1269331861902196902/1422144505485721653/1.png?ex=68db9ac8&is=68da4948&hm=a7ed4d0a5740ff876e12b22f94f3e14df81d5396fb504b52251f1382e65d1211&"
             }
 
             # Send webhook
