@@ -812,15 +812,15 @@ class UIRenderer:
 ╔═══════════════════════════════════════════════════════╗
 ║    🛒 𝗦𝗧𝗢𝗥𝗘𝟭𝗦.𝗖𝗢𝗠 • Premium E-Commerce Platform    ║
 ║         Your Trusted Shopping Destination            ║
-║                                                      ║
+║           Cửa Hàng Account Blox Fruit Uy tín S1 🇻🇳                                        ║
 ║           © 2024 STORE1S.COM • All Rights Reserved   ║
 ╚═══════════════════════════════════════════════════════╝"""
         try:
             try:
-                title = pyfiglet.figlet_format("Multi Dawn", font="small")
+                title = pyfiglet.figlet_format("STORE1ST.COM", font="slant")
             except Exception:
                 console.print("[yellow]⚠️ Font 'small' lỗi, dùng font mặc định[/yellow]")
-                title = pyfiglet.figlet_format("Multi Dawn")
+                title = pyfiglet.figlet_format("STORE1ST.COM")
             
             with console.capture() as capture:
                 console.print(title + "\n🚀 REJOIN TOOL 🚀", style="cyan")
@@ -935,7 +935,7 @@ class MultiRejoinTool:
 ╔═══════════════════════════════════════════════════════╗
 ║    🛒 𝗦𝗧𝗢𝗥𝗘𝟭𝗦.𝗖𝗢𝗠 • Premium E-Commerce Platform    ║
 ║         Your Trusted Shopping Destination            ║
-║                                                      ║
+║           Cửa Hàng Account Blox Fruit Uy tín S1 🇻🇳                                      ║
 ║           © 2024 STORE1S.COM • All Rights Reserved   ║
 ╚═══════════════════════════════════════════════════════╝""")
 
@@ -1187,7 +1187,7 @@ class MultiRejoinTool:
 ╔═══════════════════════════════════════════════════════╗
 ║    🛒 𝗦𝗧𝗢𝗥𝗘𝟭𝗦.𝗖𝗢𝗠 • Premium E-Commerce Platform    ║
 ║         Your Trusted Shopping Destination            ║
-║                                                      ║
+║           Cửa Hàng Account Blox Fruit Uy tín S1 🇻🇳                                          ║
 ║           © 2024 STORE1S.COM • All Rights Reserved   ║
 ╚═══════════════════════════════════════════════════════╝""")
 
