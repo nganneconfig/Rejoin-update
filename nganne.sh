@@ -9,7 +9,7 @@ yes | pkg update
 yes | pkg upgrade
 yes | pkg i python
 yes | pkg i python-pip
-pip install requests rich prettytable pytz
+pip install requests rich prettytable pytz aiohttp
 export CFLAGS="-Wno-error=implicit-function-declaration"
 pip install psutil
 curl -Ls "https://raw.githubusercontent.com/nganneconfig/Rejoin-update/refs/heads/main/rejoin_webhook.py" -o /sdcard/Download/rejoin_webhook.py
