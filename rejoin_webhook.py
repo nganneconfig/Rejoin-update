@@ -16,6 +16,7 @@ import shutil
 import random
 import requests
 import traceback
+import threading  # NEW: Added for Android ID functionality
 
 # Try to install required packages
 def ensure_packages():
@@ -44,6 +45,175 @@ import pyfiglet
 console = Console()
 CONFIG_PATH = Path(__file__).parent / "multi_configs.json"
 WEBHOOK_CONFIG_PATH = Path(__file__).parent / "webhook_config.json"
+
+# NEW: Android ID Manager Class
+class AndroidIDManager:
+    def __init__(self):
+        self.auto_android_id_enabled = False
+        self.auto_android_id_thread = None
+        self.auto_android_id_value = None
+
+    def set_android_id(self, android_id):
+        """
+        Set Android ID using subprocess command
+        """
+        try:
+            subprocess.run(["settings", "put", "secure", "android_id", android_id], check=True)
+            print(f"\033[1;32m[ Tool ] - Android ID set to: {android_id}\033[0m")
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"\033[1;31m[ Tool ] - Failed to set Android ID: {e}\033[0m")
+            return False
+        except Exception as e:
+            print(f"\033[1;31m[ Tool ] - Error setting Android ID: {e}\033[0m")
+            return False
+
+    def auto_change_android_id(self):
+        """
+        Continuously change Android ID every 2 seconds while enabled
+        """
+        while self.auto_android_id_enabled:
+            if self.auto_android_id_value:
+                success = self.set_android_id(self.auto_android_id_value)
+                if not success:
+                    print("\033[1;33m[ Tool ] - Retrying Android ID change...\033[0m")
+            time.sleep(2)  # Wait 2 seconds between changes
+
+    def start_auto_android_id(self):
+        """
+        Start the auto Android ID change functionality
+        """
+        if self.auto_android_id_enabled:
+            print("\033[1;33m[ Tool ] - Auto Android ID change is already running!\033[0m")
+            return False
+        
+        # Get Android ID from user input
+        android_id = input("\033[1;93m[ Tool ] - Enter Android ID to continuously set: \033[0m").strip()
+        
+        if not android_id:
+            print("\033[1;31m[ Tool ] - Android ID cannot be empty.\033[0m")
+            return False
+        
+        # Validate Android ID format (basic check)
+        if len(android_id) < 16:
+            print("\033[1;33m[ Tool ] - Warning: Android ID seems too short. Continue? (y/n): \033[0m", end="")
+            confirm = input().strip().lower()
+            if confirm != 'y':
+                return False
+        
+        self.auto_android_id_value = android_id
+        self.auto_android_id_enabled = True
+        
+        # Start the background thread
+        if self.auto_android_id_thread is None or not self.auto_android_id_thread.is_alive():
+            self.auto_android_id_thread = threading.Thread(target=self.auto_change_android_id, daemon=True)
+            self.auto_android_id_thread.start()
+        
+        print(f"\033[1;32m[ Tool ] - Auto Android ID change enabled with ID: {android_id}\033[0m")
+        print(f"\033[1;32m[ Tool ] - Android ID will be set every 2 seconds\033[0m")
+        return True
+
+    def stop_auto_android_id(self):
+        """
+        Stop the auto Android ID change functionality
+        """
+        if not self.auto_android_id_enabled:
+            print("\033[1;33m[ Tool ] - Auto Android ID change is not running.\033[0m")
+            return False
+        
+        self.auto_android_id_enabled = False
+        print("\033[1;31m[ Tool ] - Auto Android ID change disabled.\033[0m")
+        return True
+
+    def toggle_auto_android_id(self):
+        """
+        Toggle the auto Android ID change functionality on/off
+        """
+        if not self.auto_android_id_enabled:
+            return self.start_auto_android_id()
+        else:
+            return self.stop_auto_android_id()
+
+    def get_auto_android_id_status(self):
+        """
+        Get current status of auto Android ID functionality
+        """
+        status = {
+            "enabled": self.auto_android_id_enabled,
+            "android_id": self.auto_android_id_value if self.auto_android_id_value else "Not set",
+            "thread_alive": self.auto_android_id_thread.is_alive() if self.auto_android_id_thread else False
+        }
+        
+        return status
+
+    def get_current_android_id(self):
+        """
+        Get the current Android ID from the system
+        """
+        try:
+            result = subprocess.run(
+                ["settings", "get", "secure", "android_id"], 
+                capture_output=True, 
+                text=True, 
+                check=True
+            )
+            current_id = result.stdout.strip()
+            print(f"\033[1;36m[ Tool ] - Current Android ID: {current_id}\033[0m")
+            return current_id
+        except subprocess.CalledProcessError as e:
+            print(f"\033[1;31m[ Tool ] - Failed to get current Android ID: {e}\033[0m")
+            return None
+        except Exception as e:
+            print(f"\033[1;31m[ Tool ] - Error getting Android ID: {e}\033[0m")
+            return None
+
+    def android_id_menu(self):
+        """
+        Interactive menu for Android ID management
+        """
+        while True:
+            print("\n" + "="*50)
+            print("\033[1;34m[ ANDROID ID MANAGER ]\033[0m")
+            print("="*50)
+            
+            # Display current status
+            status = self.get_auto_android_id_status()
+            status_text = "\033[1;32mEnabled\033[0m" if status["enabled"] else "\033[1;31mDisabled\033[0m"
+            
+            print(f"Status: {status_text}")
+            print(f"Target ID: {status['android_id']}")
+            print(f"Thread Status: {'Running' if status['thread_alive'] else 'Stopped'}")
+            
+            print("\nOptions:")
+            print("1. Toggle Auto Android ID Change")
+            print("2. Set New Android ID")
+            print("3. Get Current Android ID")
+            print("4. Set Android ID Once")
+            print("5. Exit to Main Menu")
+            
+            choice = input("\nEnter your choice: ").strip()
+            
+            if choice == "1":
+                self.toggle_auto_android_id()
+            elif choice == "2":
+                if self.auto_android_id_enabled:
+                    print("\033[1;33m[ Tool ] - Please stop auto mode first.\033[0m")
+                else:
+                    self.start_auto_android_id()
+            elif choice == "3":
+                self.get_current_android_id()
+            elif choice == "4":
+                android_id = input("Enter Android ID to set once: ").strip()
+                if android_id:
+                    self.set_android_id(android_id)
+            elif choice == "5":
+                if self.auto_android_id_enabled:
+                    self.stop_auto_android_id()
+                break
+            else:
+                print("\033[1;31m[ Tool ] - Invalid choice!\033[0m")
+            
+            input("\nPress Enter to continue...")
 
 # NEW: Webhook Manager Class
 class WebhookManager:
@@ -637,12 +807,14 @@ class UIRenderer:
             }
 
     @staticmethod
-    def render_title() -> str:
-        fallback_title = """
-╔══════════════════════════════════════╗
-║        🚀 MULTI DAWN REJOIN 🚀        ║
-║           Auto Rejoin Tool           ║
-╚══════════════════════════════════════╝"""
+def render_title() -> str:
+    return """
+╔═══════════════════════════════════════════════════════╗
+║    🛒 𝗦𝗧𝗢𝗥𝗘𝟭𝗦.𝗖𝗢𝗠 • Premium E-Commerce Platform    ║
+║         Your Trusted Shopping Destination            ║
+║                                                      ║
+║           © 2024 STORE1S.COM • All Rights Reserved   ║
+╚═══════════════════════════════════════════════════════╝"""
         try:
             try:
                 title = pyfiglet.figlet_format("Multi Dawn", font="small")
@@ -748,6 +920,7 @@ class MultiRejoinTool:
         self.instances = []
         self.is_running = False
         self.webhook_manager = WebhookManager()
+        self.android_id_manager = AndroidIDManager()  # NEW: Android ID Manager
 
     async def start(self):
         Utils.ensure_root()
@@ -759,25 +932,31 @@ class MultiRejoinTool:
             print(UIRenderer.render_title())
         except:
             print("""
-╔══════════════════════════════════════╗
-║        🚀 MULTI DAWN REJOIN 🚀      ║
-║           Auto Rejoin Tool           ║
-╚══════════════════════════════════════╝""")
+╔═══════════════════════════════════════════════════════╗
+║    🛒 𝗦𝗧𝗢𝗥𝗘𝟭𝗦.𝗖𝗢𝗠 • Premium E-Commerce Platform    ║
+║         Your Trusted Shopping Destination            ║
+║                                                      ║
+║           © 2024 STORE1S.COM • All Rights Reserved   ║
+╚═══════════════════════════════════════════════════════╝""")
 
         print("\n🎯 Multi-Instance Roblox Rejoin Tool")
         print("1. 🚀 Bắt đầu auto rejoin")
         print("2. ⚙️ Setup packages")
-        print("3. 🔧 Cấu hình Webhook Discord")  # NEW: Webhook configuration option
+        print("3. 🔧 Cấu hình Webhook Discord")
+        print("4. 📱 Auto Change Android ID")  # NEW: Android ID option
 
-        choice = Utils.ask("\nChọn option (1-3): ")
+        choice = Utils.ask("\nChọn option (1-4): ")
 
         if choice.strip() == "1":
             await self.start_auto_rejoin()
         elif choice.strip() == "2":
             await self.setup_packages()
-        elif choice.strip() == "3":  # NEW: Webhook setup
+        elif choice.strip() == "3":
             self.webhook_manager.setup_webhook()
             input("\nNhấn Enter để tiếp tục...")
+            await self.start()
+        elif choice.strip() == "4":  # NEW: Android ID Manager
+            self.android_id_manager.android_id_menu()
             await self.start()
         else:
             print("❌ Lựa chọn không hợp lệ!")
@@ -864,7 +1043,7 @@ class MultiRejoinTool:
         print("0. 🚀 Chạy tất cả packages")
 
         package_list = []
-        for index, (package_name, config) in enumerate(configs.items(), 1):
+        for index, (package_name, config) in enumerate(configs.items(), start=1):
             if package_name == 'com.roblox.client':
                 package_display = 'Global 🌍'
             elif package_name == 'com.roblox.client.vnggames':
@@ -1005,10 +1184,12 @@ class MultiRejoinTool:
                     print(UIRenderer.render_title())
                 except:
                     print("""
-╔══════════════════════════════════════╗
-║        🚀 MULTI DAWN REJOIN 🚀        ║
-║           Auto Rejoin Tool           ║
-╚══════════════════════════════════════╝""")
+╔═══════════════════════════════════════════════════════╗
+║    🛒 𝗦𝗧𝗢𝗥𝗘𝟭𝗦.𝗖𝗢𝗠 • Premium E-Commerce Platform    ║
+║         Your Trusted Shopping Destination            ║
+║                                                      ║
+║           © 2024 STORE1S.COM • All Rights Reserved   ║
+╚═══════════════════════════════════════════════════════╝""")
 
                 print(UIRenderer.render_multi_instance_table(self.instances))
 
@@ -1044,7 +1225,7 @@ async def main():
         await tool.start()
     except KeyboardInterrupt:
         print('\n\n🛑 Đang dừng chương trình...')
-        print('👋 Cảm ơn bạn đã sử dụng Dawn Rejoin Tool!')
+        print('👋 Cảm ơn bạn đã sử dụng Rejoin Ngan ❤')
         sys.exit(0)
 
 
