@@ -807,7 +807,7 @@ class UIRenderer:
             }
 
     @staticmethod
-def render_title() -> str:
+    def render_title() -> str:
     return """
 ╔═══════════════════════════════════════════════════════╗
 ║    🛒 𝗦𝗧𝗢𝗥𝗘𝟭𝗦.𝗖𝗢𝗠 • Premium E-Commerce Platform    ║
