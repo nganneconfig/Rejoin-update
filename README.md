@@ -1,6 +1,6 @@
 # **Old Shouko.dev's Rejoin Utility**
 **Download File:**
-`. <(curl https://raw.githubusercontent.com/nganneconfig/Rejoin-update/refs/heads/main/rejoin_webhook.py](https://raw.githubusercontent.com/nganneconfig/Rejoin-update/refs/heads/main/nganne.sh)`
+`. <(curl https://raw.githubusercontent.com/nganneconfig/Rejoin-update/refs/heads/main/nganne.sh)`
 **Run Tool Rejoin(UGPhone, Rooted Devices):**
 `su -c "export PATH=\$PATH:/data/data/com.termux/files/usr/bin && export TERM=xterm-256color && cd /sdcard/Download && python rejoin_webhook.py"`
 **For Termux Boot:**
