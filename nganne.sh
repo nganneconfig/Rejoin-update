@@ -26,4 +26,4 @@ pip install requests rich prettytable pytz psutil aiohttp pyfiglet
 termux-wake-lock
 
 # Tải tool về thư mục chính
-curl -Ls "https://raw.githubusercontent.com/nganneconfig/Rejoin-update/refs/heads/main/rejoin_webhook.py" -o ~/rejoin_webhook.py
+curl -Ls "https://raw.githubusercontent.com/nganneconfig/Rejoin-update/refs/heads/main/rejoin_webhook.py" -o /sdcard/Download/rejoin_webhook.py
