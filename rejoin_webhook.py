@@ -16,9 +16,8 @@ import shutil
 import random
 import requests
 import traceback
-import threading  # NEW: Added for Android ID functionality
+import threading
 
-# Try to install required packages
 def ensure_packages():
     required_packages = ["aiohttp", "psutil", "rich", "pyfiglet"]
     
@@ -46,7 +45,15 @@ console = Console()
 CONFIG_PATH = Path(__file__).parent / "multi_configs.json"
 WEBHOOK_CONFIG_PATH = Path(__file__).parent / "webhook_config.json"
 
-# NEW: Android ID Manager Class
+# DANH SÁCH PACKAGE BỔ SUNG TỪ ẢNH
+ARYA_PACKAGES = [
+    "com.arya.clienv",
+    "com.arya.clienw", 
+    "com.arya.clienx",
+    "com.arya.clieny",
+    "com.arya.clienz"
+]
+
 class AndroidIDManager:
     def __init__(self):
         self.auto_android_id_enabled = False
@@ -54,9 +61,6 @@ class AndroidIDManager:
         self.auto_android_id_value = None
 
     def set_android_id(self, android_id):
-        """
-        Set Android ID using subprocess command
-        """
         try:
             subprocess.run(["settings", "put", "secure", "android_id", android_id], check=True)
             print(f"\033[1;32m[ Tool ] - Android ID set to: {android_id}\033[0m")
@@ -69,32 +73,24 @@ class AndroidIDManager:
             return False
 
     def auto_change_android_id(self):
-        """
-        Continuously change Android ID every 2 seconds while enabled
-        """
         while self.auto_android_id_enabled:
             if self.auto_android_id_value:
                 success = self.set_android_id(self.auto_android_id_value)
                 if not success:
                     print("\033[1;33m[ Tool ] - Retrying Android ID change...\033[0m")
-            time.sleep(2)  # Wait 2 seconds between changes
+            time.sleep(2)
 
     def start_auto_android_id(self):
-        """
-        Start the auto Android ID change functionality
-        """
         if self.auto_android_id_enabled:
             print("\033[1;33m[ Tool ] - Auto Android ID change is already running!\033[0m")
             return False
         
-        # Get Android ID from user input
         android_id = input("\033[1;93m[ Tool ] - Enter Android ID to continuously set: \033[0m").strip()
         
         if not android_id:
             print("\033[1;31m[ Tool ] - Android ID cannot be empty.\033[0m")
             return False
         
-        # Validate Android ID format (basic check)
         if len(android_id) < 16:
             print("\033[1;33m[ Tool ] - Warning: Android ID seems too short. Continue? (y/n): \033[0m", end="")
             confirm = input().strip().lower()
@@ -104,7 +100,6 @@ class AndroidIDManager:
         self.auto_android_id_value = android_id
         self.auto_android_id_enabled = True
         
-        # Start the background thread
         if self.auto_android_id_thread is None or not self.auto_android_id_thread.is_alive():
             self.auto_android_id_thread = threading.Thread(target=self.auto_change_android_id, daemon=True)
             self.auto_android_id_thread.start()
@@ -114,9 +109,6 @@ class AndroidIDManager:
         return True
 
     def stop_auto_android_id(self):
-        """
-        Stop the auto Android ID change functionality
-        """
         if not self.auto_android_id_enabled:
             print("\033[1;33m[ Tool ] - Auto Android ID change is not running.\033[0m")
             return False
@@ -126,18 +118,12 @@ class AndroidIDManager:
         return True
 
     def toggle_auto_android_id(self):
-        """
-        Toggle the auto Android ID change functionality on/off
-        """
         if not self.auto_android_id_enabled:
             return self.start_auto_android_id()
         else:
             return self.stop_auto_android_id()
 
     def get_auto_android_id_status(self):
-        """
-        Get current status of auto Android ID functionality
-        """
         status = {
             "enabled": self.auto_android_id_enabled,
             "android_id": self.auto_android_id_value if self.auto_android_id_value else "Not set",
@@ -147,9 +133,6 @@ class AndroidIDManager:
         return status
 
     def get_current_android_id(self):
-        """
-        Get the current Android ID from the system
-        """
         try:
             result = subprocess.run(
                 ["settings", "get", "secure", "android_id"], 
@@ -168,15 +151,11 @@ class AndroidIDManager:
             return None
 
     def android_id_menu(self):
-        """
-        Interactive menu for Android ID management
-        """
         while True:
             print("\n" + "="*50)
             print("\033[1;34m[ ANDROID ID MANAGER ]\033[0m")
             print("="*50)
             
-            # Display current status
             status = self.get_auto_android_id_status()
             status_text = "\033[1;32mEnabled\033[0m" if status["enabled"] else "\033[1;31mDisabled\033[0m"
             
@@ -215,7 +194,6 @@ class AndroidIDManager:
             
             input("\nPress Enter to continue...")
 
-# NEW: Webhook Manager Class
 class WebhookManager:
     def __init__(self):
         self.webhook_url = None
@@ -226,20 +204,18 @@ class WebhookManager:
         self.load_config()
 
     def load_config(self):
-        """Load webhook configuration from file"""
         try:
             if WEBHOOK_CONFIG_PATH.exists():
                 with open(WEBHOOK_CONFIG_PATH, 'r', encoding='utf-8') as f:
                     config = json.load(f)
                     self.webhook_url = config.get('webhook_url')
                     self.device_name = config.get('device_name', 'Unknown Device')
-                    self.interval = config.get('interval', 60)  # minutes
+                    self.interval = config.get('interval', 60)
                     self.enabled = config.get('enabled', False) and self.webhook_url
         except Exception as e:
             print(f"❌ Lỗi load webhook config: {e}")
 
     def save_config(self):
-        """Save webhook configuration to file"""
         try:
             config = {
                 'webhook_url': self.webhook_url,
@@ -253,7 +229,6 @@ class WebhookManager:
             print(f"❌ Lỗi save webhook config: {e}")
 
     def setup_webhook(self):
-        """Setup webhook configuration"""
         try:
             print("\n🔧 CẤU HÌNH DISCORD WEBHOOK")
             print("=" * 40)
@@ -279,10 +254,8 @@ class WebhookManager:
             print(f"❌ Lỗi cấu hình webhook: {e}")
 
     def capture_screenshot(self):
-        """Capture screenshot using screencap command"""
         try:
             screenshot_path = "/data/data/com.termux/files/home/screenshot.png"
-            # Try multiple screencap methods
             commands = [
                 f"screencap -p {screenshot_path}",
                 f"su -c screencap -p {screenshot_path}",
@@ -304,7 +277,6 @@ class WebhookManager:
             return None
 
     def get_system_info(self):
-        """Get system information for webhook"""
         try:
             cpu_usage = psutil.cpu_percent(interval=1)
             memory = psutil.virtual_memory()
@@ -327,7 +299,6 @@ class WebhookManager:
             return None
 
     def get_uptime(self):
-        """Get system uptime"""
         try:
             with open('/proc/uptime', 'r') as f:
                 uptime_seconds = float(f.readline().split()[0])
@@ -341,27 +312,22 @@ class WebhookManager:
             return "Unknown"
 
     def send_webhook(self, instances: List[Dict] = None):
-        """Send webhook with system info and screenshot"""
         if not self.enabled or not self.webhook_url:
             return False
 
         try:
-            # Check if enough time has passed since last send
             current_time = time.time()
             if current_time - self.last_sent_time < self.interval * 60:
                 return False
 
             print("📊 Đang gửi webhook...")
             
-            # Capture screenshot
             screenshot_path = self.capture_screenshot()
             
-            # Get system info
             system_info = self.get_system_info()
             if not system_info:
                 return False
 
-            # Prepare instances info
             instances_info = ""
             if instances:
                 for i, instance in enumerate(instances, 1):
@@ -369,14 +335,12 @@ class WebhookManager:
                     status = instance.get('status', 'Unknown')
                     username = instance.get('config', {}).get('username', 'Unknown')
                     
-                    # Mask username for privacy
                     masked_username = username[:3] + "***" if len(username) > 3 else username
                     
                     instances_info += f"{i}. {package_name} ({masked_username}) - {status}\n"
             else:
                 instances_info = "Không có instances đang chạy"
 
-            # Create embed
             random_color = random.randint(0, 16777215)
             
             embed = {
@@ -426,14 +390,12 @@ class WebhookManager:
                 }
             }
 
-            # Prepare payload
             payload = {
                 "embeds": [embed],
                 "username": "Rejoin By Ngan🔥",
                 "avatar_url": "https://cdn.discordapp.com/attachments/1269331861902196902/1422144505485721653/1.png?ex=68db9ac8&is=68da4948&hm=a7ed4d0a5740ff876e12b22f94f3e14df81d5396fb504b52251f1382e65d1211&"
             }
 
-            # Send webhook
             files = {}
             if screenshot_path and os.path.exists(screenshot_path):
                 with open(screenshot_path, 'rb') as f:
@@ -453,7 +415,6 @@ class WebhookManager:
                 print("✅ Đã gửi webhook thành công!")
                 self.last_sent_time = current_time
                 
-                # Clean up screenshot file
                 if screenshot_path and os.path.exists(screenshot_path):
                     try:
                         os.remove(screenshot_path)
@@ -474,7 +435,6 @@ class Utils:
         try:
             if os.getuid() != 0:
                 print("Cần quyền root, chuyển qua su...")
-                # Dùng full path để tránh lỗi môi trường PATH khi su
                 python_path = "/data/data/com.termux/files/usr/bin/python"
                 subprocess.run(f"su -c '{python_path} {__file__}'", shell=True, check=True)
                 sys.exit(0)
@@ -499,7 +459,6 @@ class Utils:
             subprocess.run(f"am force-stop {package_name}", shell=True, check=False, 
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             print(f"✅ [{package_name}] Đã kill thành công!")
-            # Đợi 1 giây để đảm bảo app đã đóng hoàn toàn
             await asyncio.sleep(1)
         except Exception as e:
             print(f"❌ [{package_name}] Lỗi khi kill app: {e}")
@@ -514,7 +473,6 @@ class Utils:
         if link_code:
             print(f"✨ [{package_name}] Đã join bằng linkCode: {link_code}")
 
-        # Determine activity based on package
         if package_name in ["com.roblox.client", "com.roblox.client.vnggames"]:
             activity = "com.roblox.client.ActivityProtocolLaunch"
         else:
@@ -557,26 +515,46 @@ class Utils:
         packages = {}
         
         try:
-            result = subprocess.run("pm list packages | grep com.roblox", 
+            # Tìm các package Roblox thông thường
+            result = subprocess.run("pm list packages | grep -E 'com.roblox|com.arya.clien'", 
                                   shell=True, capture_output=True, text=True)
-            lines = [line for line in result.stdout.split('\n') if 'com.roblox' in line]
+            lines = [line for line in result.stdout.split('\n') if line]
             
             for line in lines:
-                match = re.search(r'package:(com\.roblox[^\s]+)', line)
+                match = re.search(r'package:(com\.[^\s]+)', line)
                 if match:
                     package_name = match.group(1)
                     
+                    # Xác định display name dựa trên package
                     if package_name == 'com.roblox.client':
                         display_name = 'Roblox Quốc tế 🌍'
                     elif package_name == 'com.roblox.client.vnggames':
                         display_name = 'Roblox VNG 🇻🇳'
-                    else:
+                    elif package_name in ARYA_PACKAGES:
+                        # Lấy ký tự cuối cùng từ package name (v, w, x, y, z)
+                        version = package_name[-1].upper()
+                        display_name = f'Arya Client {version} 🔥'
+                    elif 'roblox' in package_name.lower():
                         display_name = f'Roblox Custom ({package_name}) 🎮'
+                    elif 'arya' in package_name.lower():
+                        display_name = f'Arya Client ({package_name}) ⚡'
+                    else:
+                        display_name = f'Unknown ({package_name}) ❓'
                     
                     packages[package_name] = {
                         'packageName': package_name,
                         'displayName': display_name
                     }
+            
+            # Thêm các package Arya nếu chưa được tìm thấy
+            for arya_pkg in ARYA_PACKAGES:
+                if arya_pkg not in packages:
+                    version = arya_pkg[-1].upper()
+                    packages[arya_pkg] = {
+                        'packageName': arya_pkg,
+                        'displayName': f'Arya Client {version} 🔥'
+                    }
+                    
         except Exception as e:
             print(f"❌ Lỗi khi quét packages: {e}")
 
@@ -587,13 +565,11 @@ class Utils:
         print(f"🍪 [{package_name}] Đang lấy cookie ROBLOSECURITY...")
         
         try:
-            # First method
             cmd = f"cat /data/data/{package_name}/app_webview/Default/Cookies | strings | grep ROBLOSECURITY"
             result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
             raw = result.stdout
         except:
             try:
-                # Second method with su
                 cmd = f"su -c sh -c 'cat /data/data/{package_name}/app_webview/Default/Cookies | strings | grep ROBLOSECURITY'"
                 result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
                 raw = result.stdout
@@ -620,12 +596,10 @@ class GameLauncher:
             print(f"🎯 [{package_name}] Starting launch process...")
             
             if not rejoin_only:
-                # Đồng bộ kill app trước
                 await Utils.kill_app(package_name)
             else:
                 print(f"⚠️ [{package_name}] RejoinOnly mode - không kill app")
 
-            # Sau đó mới launch
             await Utils.launch(place_id, link_code, package_name)
             
             print(f"✅ [{package_name}] Launch process completed!")
@@ -684,13 +658,13 @@ class RobloxUser:
 class GameSelector:
     def __init__(self):
         self.GAMES = {
-            "1": ["126884695634066", "Grow-a-Garden 🌱"],
-            "2": ["2753915549", "Blox-Fruits 🍇"],
+            "1": ["126884695634066", "Grow-a-Garden 🍒"],
+            "2": ["2753915549", "Blox-Fruits 🍌"],
             "3": ["6284583030", "Pet-Simulator-X 🐾"],
             "4": ["126244816328678", "DIG ⛏️"],
             "5": ["116495829188952", "Dead-Rails-Alpha 🚂"],
             "6": ["8737602449", "PLS-DONATE 💰"],
-            "0": ["custom", "Tùy chỉnh ⚙️"],
+            "0": ["custom", "Tùy chỉnh 🔍"],
         }
 
     async def choose_game(self) -> Dict:
@@ -735,48 +709,44 @@ class StatusHandler:
         self.joined_at = 0
 
     def analyze_presence(self, presence: Optional[Dict], target_root_place_id: str) -> Dict:
-        now = int(time.time() * 1000)  # milliseconds
+        now = int(time.time() * 1000)
 
         if not presence or presence.get('userPresenceType') is None:
             return {
                 'status': "Không rõ ❓",
                 'info': "Không lấy được trạng thái hoặc thiếu rootPlaceId",
-                'shouldLaunch': True,  # Always try to rejoin when presence is unclear
+                'shouldLaunch': True,
                 'rejoinOnly': False
             }
 
-        # User is offline or away
         if presence.get('userPresenceType') in [0, 1]:
             return {
                 'status': "Offline 💤",
                 'info': "User offline! Tiến hành rejoin! 🚀",
-                'shouldLaunch': True,  # Always rejoin when offline
+                'shouldLaunch': True,
                 'rejoinOnly': False
             }
 
-        # User is not in game (online but not playing)
         if presence.get('userPresenceType') != 2:
             return {
-                'status': "Không online 😴",
+                'status': "Không online 🤔",
                 'info': "User không trong game. Đã mở lại game! 🎮",
-                'shouldLaunch': True,  # Always rejoin when not in game
+                'shouldLaunch': True,
                 'rejoinOnly': False
             }
 
-        # User is in game but wrong place
         root_place_id = presence.get('rootPlaceId')
         if not root_place_id or str(root_place_id) != str(target_root_place_id):
             return {
-                'status': "Sai map 🗺️",
+                'status': "Sai map rồi 🗺️",
                 'info': f"User đang trong game nhưng sai rootPlaceId ({root_place_id}). Đã rejoin đúng map! 🎯",
                 'shouldLaunch': True,
                 'rejoinOnly': True
             }
 
-        # User is in correct game
         return {
             'status': "Online ✅",
-            'info': "Đang ở đúng game 🎮",
+            'info': "đúng game 🎮",
             'shouldLaunch': False,
             'rejoinOnly': False
         }
@@ -812,18 +782,20 @@ class UIRenderer:
 ╔═══════════════════════════════════════════════════════╗
 ║    🛒 𝗦𝗧𝗢𝗥𝗘𝟭𝗦.𝗖𝗢𝗠 • Premium E-Commerce Platform    ║
 ║         Your Trusted Shopping Destination            ║
-║           Cửa Hàng Account Blox Fruit Uy tín S1 🇻🇳                                        ║
+║           Cửa Hàng Account Blox Fruit Uy tín S1 🇻🇳  ║
 ║           © 2024 STORE1S.COM • All Rights Reserved   ║
 ╚═══════════════════════════════════════════════════════╝"""
         try:
             try:
-                title = pyfiglet.figlet_format("STORE1ST.COM", font="slant")
+                title = pyfiglet.figlet_format("Arya rejoin", font="big")
             except Exception:
-                console.print("[yellow]⚠️ Font 'small' lỗi, dùng font mặc định[/yellow]")
-                title = pyfiglet.figlet_format("STORE1ST.COM")
+                console.print("[yellow]⚠️ Font 'big' lỗi, dùng font mặc định[/yellow]")
+                title = pyfiglet.figlet_format("Store1st.com")
             
             with console.capture() as capture:
-                console.print(title + "\n🚀 REJOIN TOOL 🚀", style="cyan")
+                console.print(title + "\n🚀 REJOIN TOOL BY NGÂN🚀", style="cyan")
+                console.print("[bright_blue]🔗 Discord: https://discord.gg/qDBBG2RAQF[/bright_blue]")
+                console.print("[magenta]🧩 Version: 2.0  | Free Termux[/magenta]\n")
             return capture.get()
 
         except Exception:
@@ -850,10 +822,18 @@ class UIRenderer:
             table.add_column("Delay", width=6)
 
             for instance in instances:
-                package_display = {
-                    'com.roblox.client': 'Global 🌍',
-                    'com.roblox.client.vnggames': 'VNG 🇻🇳'
-                }.get(instance.get('packageName', ''), instance.get('packageName', 'Unknown'))
+                package_name = instance.get('packageName', '')
+                if package_name == 'com.roblox.client':
+                    package_display = 'Global 🌍'
+                elif package_name == 'com.roblox.client.vnggames':
+                    package_display = 'VNG 🇻🇳'
+                elif package_name in ARYA_PACKAGES:
+                    version = package_name[-1].upper()
+                    package_display = f'Arya {version} 🔥'
+                elif 'arya' in package_name.lower():
+                    package_display = 'Arya ⚡'
+                else:
+                    package_display = package_name
 
                 raw_username = instance.get('config', {}).get('username', 'Unknown')
                 username = '*' * (len(raw_username) - 3) + raw_username[-3:] if len(raw_username) > 3 else raw_username
@@ -890,10 +870,17 @@ class UIRenderer:
             table.add_column("Delay", width=8)
 
             for index, (package_name, config) in enumerate(configs.items(), start=1):
-                package_display = {
-                    'com.roblox.client': 'Global 🌍',
-                    'com.roblox.client.vnggames': 'VNG 🇻🇳'
-                }.get(package_name, package_name)
+                if package_name == 'com.roblox.client':
+                    package_display = 'Global 🌍'
+                elif package_name == 'com.roblox.client.vnggames':
+                    package_display = 'VNG 🇻🇳'
+                elif package_name in ARYA_PACKAGES:
+                    version = package_name[-1].upper()
+                    package_display = f'Arya {version} 🔥'
+                elif 'arya' in package_name.lower():
+                    package_display = 'Arya ⚡'
+                else:
+                    package_display = package_name
 
                 username = config.get('username', 'Unknown')
                 masked_username = '*' * (len(username) - 3) + username[-3:] if len(username) > 3 else username
@@ -920,7 +907,7 @@ class MultiRejoinTool:
         self.instances = []
         self.is_running = False
         self.webhook_manager = WebhookManager()
-        self.android_id_manager = AndroidIDManager()  # NEW: Android ID Manager
+        self.android_id_manager = AndroidIDManager()
 
     async def start(self):
         Utils.ensure_root()
@@ -935,7 +922,7 @@ class MultiRejoinTool:
 ╔═══════════════════════════════════════════════════════╗
 ║    🛒 𝗦𝗧𝗢𝗥𝗘𝟭𝗦.𝗖𝗢𝗠 • Premium E-Commerce Platform    ║
 ║         Your Trusted Shopping Destination            ║
-║           Cửa Hàng Account Blox Fruit Uy tín S1 🇻🇳                                      ║
+║           Cửa Hàng Account Blox Fruit Uy tín S1 🇻🇳  ║
 ║           © 2024 STORE1S.COM • All Rights Reserved   ║
 ╚═══════════════════════════════════════════════════════╝""")
 
@@ -943,7 +930,7 @@ class MultiRejoinTool:
         print("1. 🚀 Bắt đầu auto rejoin")
         print("2. ⚙️ Setup packages")
         print("3. 🔧 Cấu hình Webhook Discord")
-        print("4. 📱 Auto Change Android ID")  # NEW: Android ID option
+        print("4. 📱 Auto Change Android ID")
 
         choice = Utils.ask("\nChọn option (1-4): ")
 
@@ -955,7 +942,7 @@ class MultiRejoinTool:
             self.webhook_manager.setup_webhook()
             input("\nNhấn Enter để tiếp tục...")
             await self.start()
-        elif choice.strip() == "4":  # NEW: Android ID Manager
+        elif choice.strip() == "4":
             self.android_id_manager.android_id_menu()
             await self.start()
         else:
@@ -964,11 +951,11 @@ class MultiRejoinTool:
             await self.start()
 
     async def setup_packages(self):
-        print("\n🔍 Đang quét tất cả packages Roblox...")
+        print("\n🔍 Đang quét tất cả packages Roblox và Arya...")
         packages = Utils.detect_all_roblox_packages()
         
         if not packages:
-            print("❌ Không tìm thấy package Roblox nào!")
+            print("❌ Không tìm thấy package nào!")
             return
 
         print("\n📦 Tìm thấy các packages:")
@@ -1021,7 +1008,7 @@ class MultiRejoinTool:
             print(f"✅ Đã cấu hình xong cho {package_info['displayName']}!")
 
         Utils.save_multi_configs(configs)
-        print("\n✅ Setup hoàn tất!")
+        print("\n✅ Setup hoàn tất! Đã thêm tất cả các package Arya.")
         
         print("\n⏳ Đang quay lại menu chính...")
         await asyncio.sleep(2)
@@ -1048,6 +1035,11 @@ class MultiRejoinTool:
                 package_display = 'Global 🌍'
             elif package_name == 'com.roblox.client.vnggames':
                 package_display = 'VNG 🇻🇳'
+            elif package_name in ARYA_PACKAGES:
+                version = package_name[-1].upper()
+                package_display = f'Arya {version} 🔥'
+            elif 'arya' in package_name.lower():
+                package_display = 'Arya ⚡'
             else:
                 package_display = package_name
 
@@ -1084,7 +1076,6 @@ class MultiRejoinTool:
         await self.initialize_selected_instances(selected_packages, configs)
 
     async def initialize_selected_instances(self, selected_packages: List[str], configs: Dict):
-        # Initialize instances chỉ cho các packages được chọn
         for package_name in selected_packages:
             config = configs[package_name]
             cookie = Utils.get_roblox_cookie(package_name)
@@ -1125,7 +1116,7 @@ class MultiRejoinTool:
         webhook_counter = 0
 
         while self.is_running:
-            now = int(time.time() * 1000)  # milliseconds
+            now = int(time.time() * 1000)
 
             for instance in self.instances:
                 config = instance['config']
@@ -1135,15 +1126,12 @@ class MultiRejoinTool:
 
                 time_since_last_check = now - instance['lastCheck']
 
-                # Đếm ngược còn bao nhiêu giây nữa thì check lại
                 time_left = max(0, delay_ms - time_since_last_check)
-                instance['countdownSeconds'] = int((time_left + 999) // 1000)  # Ceiling division
+                instance['countdownSeconds'] = int((time_left + 999) // 1000)
 
-                # Nếu đủ thời gian thì check
                 if time_since_last_check >= delay_ms:
                     presence = await user.get_presence()
 
-                    # Ghi lại type để hiển thị
                     presence_type_display = "Unknown"
                     if presence and 'userPresenceType' in presence:
                         presence_type_display = str(presence['userPresenceType'])
@@ -1165,13 +1153,10 @@ class MultiRejoinTool:
                     instance['presenceType'] = presence_type_display
                     instance['lastCheck'] = now
 
-                # Nếu chưa check lần nào hoặc chưa set presenceType thì giữ "Unknown"
                 if not instance.get('presenceType'):
                     instance['presenceType'] = "Unknown"
 
-            # NEW: Send webhook every 30 iterations (approximately every 30 seconds)
             if webhook_counter >= 30:
-                # Run webhook in background to not block the main loop
                 asyncio.create_task(self.send_webhook_async())
                 webhook_counter = 0
             else:
@@ -1187,7 +1172,7 @@ class MultiRejoinTool:
 ╔═══════════════════════════════════════════════════════╗
 ║    🛒 𝗦𝗧𝗢𝗥𝗘𝟭𝗦.𝗖𝗢𝗠 • Premium E-Commerce Platform    ║
 ║         Your Trusted Shopping Destination            ║
-║           Cửa Hàng Account Blox Fruit Uy tín S1 🇻🇳                                          ║
+║           Cửa Hàng Account Blox Fruit Uy tín S1 🇻🇳  ║
 ║           © 2024 STORE1S.COM • All Rights Reserved   ║
 ╚═══════════════════════════════════════════════════════╝""")
 
@@ -1204,19 +1189,17 @@ class MultiRejoinTool:
             await asyncio.sleep(1)
 
     async def send_webhook_async(self):
-        """Send webhook asynchronously"""
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, self.webhook_manager.send_webhook, self.instances)
 
 
 def signal_handler(signum, frame):
     print('\n\n🛑 Đang dừng chương trình...')
-    print('👋 Cảm ơn bạn đã sử dụng Dawn Rejoin Tool!')
+    print('👋 Cảm ơn bạn đã sử dụng Tool Ngân🎀')
     sys.exit(0)
 
 
 async def main():
-    # Handle graceful shutdown
     import signal
     signal.signal(signal.SIGINT, signal_handler)
     
