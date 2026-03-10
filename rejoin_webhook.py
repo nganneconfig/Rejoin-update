@@ -1609,7 +1609,7 @@ class MultiRejoinTool:
             await self.start()
         elif choice.strip() == "5":
             logacc()
-        elif choice.strip() == "6"
+        elif choice.strip() == "6":
             login_cookie()
            
             
@@ -1883,3 +1883,4 @@ async def main():
 if __name__ == "__main__":
 
     asyncio.run(main())
+
